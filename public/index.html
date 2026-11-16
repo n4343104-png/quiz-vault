@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a07">
+<title>Quiz Vault</title>
+<style>
+:root{
+  --bg:#0b0a07; --card:#17130a; --card2:#1f190c; --line:#3a2f12;
+  --gold:#d4af37; --gold2:#f6e27a; --gold3:#8a6d1a; --text:#f3ead0; --muted:#a8996b; --danger:#e2574c;
+  --grad:linear-gradient(135deg,#f6e27a 0%,#d4af37 45%,#a67c00 100%);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(90px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;padding:calc(14px + env(safe-area-inset-top)) 16px 12px;background:linear-gradient(#0b0a07 80%,rgba(11,10,7,0));margin-top:calc(-1 * env(safe-area-inset-top))}
+h1{margin:0 0 10px;font-size:24px;letter-spacing:.5px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;outline:none}
+.search:focus{border-color:var(--gold)}
+.chips{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
+.chip{flex:none;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:13px}
+.chip.on{background:var(--grad);color:#1a1300;border-color:transparent;font-weight:600}
+main{padding:4px 16px}
+details.sub{margin:12px 0;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+details.sub>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;font-weight:700;font-size:17px;color:var(--gold2)}
+details.sub>summary::-webkit-details-marker{display:none}
+summary .count{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted)}
+summary .caret{transition:transform .2s;color:var(--gold)}
+details[open]>summary .caret{transform:rotate(90deg)}
+.topic{padding:0 14px 12px}
+.thead{display:flex;align-items:center;gap:6px;margin:10px 0 6px;color:var(--gold);font-size:13px;letter-spacing:.8px;text-transform:uppercase;font-weight:600}
+.thead .line{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.row{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;border-radius:12px;background:var(--card2);border:1px solid #2a2210}
+.row:active{border-color:var(--gold)}
+.badge{flex:none;width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#1a1300;background:var(--grad)}
+.badge.pdf{background:linear-gradient(135deg,#fff3c4,#c9a227)}
+.info{flex:1;min-width:0}
+.title{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{font-size:12px;color:var(--muted);margin-top:2px}
+.ibtn,.tbtn{border:0;background:transparent;color:var(--gold);font-size:18px;padding:6px 8px;border-radius:8px}
+.tbtn{font-size:14px;padding:2px 6px;color:var(--muted)}
+.ibtn:active,.tbtn:active{background:#2a2210}
+.danger{color:var(--danger)}
+.empty{text-align:center;color:var(--muted);margin:60px 20px;line-height:1.7}
+.fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;border:0;background:var(--grad);color:#1a1300;font-size:32px;font-weight:300;box-shadow:0 6px 20px rgba(212,175,55,.35)}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{width:100%;max-width:520px;background:var(--card);border:1px solid var(--gold3);border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.sheet h2{margin:0 0 14px;font-size:19px;color:var(--gold2)}
+label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
+input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;outline:none}
+input[type=text]:focus{border-color:var(--gold)}
+.file{display:block;padding:18px;text-align:center;border:1.5px dashed var(--gold3);border-radius:12px;color:var(--gold);font-size:14px}
+.file input{display:none}
+.btns{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:15px}
+.btn.primary{background:var(--grad);color:#1a1300;border:0;font-weight:700}
+.btn:disabled{opacity:.5}
+#viewer{position:fixed;inset:0;z-index:30;background:#000;display:none;flex-direction:column}
+#viewer.show{display:flex}
+.vbar{display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:var(--card);border-bottom:1px solid var(--gold3)}
+.vbar b{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--gold2)}
+.vbody{flex:1;overflow:auto;background:#1a1a1a}
+.vbody iframe{width:100%;height:100%;border:0;background:#fff}
+.vbody canvas{display:block;margin:8px auto;background:#fff;max-width:100%}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--grad);color:#1a1300;padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:50;display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>✦ Quiz Vault</h1>
+  <input class="search" id="q" type="search" placeholder="Subject, topic ya naam search karo…">
+  <div class="chips" id="chips">
+    <button class="chip on" data-f="all">Sab</button>
+    <button class="chip" data-f="quiz">Quiz</button>
+    <button class="chip" data-f="pdf">PDF Notes</button>
+  </div>
+</header>
+<main id="list"></main>
+<button class="fab" id="add" aria-label="Add">+</button>
+
+<div class="overlay" id="modal">
+  <div class="sheet">
+    <h2 id="mtitle">Nayi file add karo</h2>
+    <label>Subject</label>
+    <input type="text" id="fsub" list="subs" placeholder="jaise: Physics">
+    <datalist id="subs"></datalist>
+    <label>Topic</label>
+    <input type="text" id="ftop" list="tops" placeholder="jaise: Laws of Motion">
+    <datalist id="tops"></datalist>
+    <label>Title (optional)</label>
+    <input type="text" id="ftitle" placeholder="Test 1 / Chapter notes">
+    <div id="filebox">
+      <label>File (HTML quiz ya PDF, max 3 MB)</label>
+      <label class="file"><span id="fname">📂 File chuno</span>
+        <input type="file" id="ffile" accept=".html,.htm,.pdf,text/html,application/pdf"></label>
+    </div>
+    <div class="btns">
+      <button class="btn" id="cancel">Cancel</button>
+      <button class="btn primary" id="save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="viewer">
+  <div class="vbar"><button class="ibtn" id="vclose">✕</button><b id="vtitle"></b></div>
+  <div class="vbody" id="vbody"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let items = [], filter = 'all', editId = null, pass = localStorage.getItem('qv_pass') || '';
+const openSubs = new Set(JSON.parse(localStorage.getItem('qv_open') || '[]'));
+
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2200)}
+
+async function api(url, opt = {}) {
+  opt.headers = { ...(opt.headers || {}), 'x-pass': pass };
+  if (opt.body && typeof opt.body !== 'string') {
+    opt.body = JSON.stringify(opt.body);
+    opt.headers['Content-Type'] = 'application/json';
+  }
+  const r = await fetch(url, opt);
+  if (r.status === 401) {
+    const p = prompt('Password daalo');
+    if (!p) throw new Error('Password chahiye');
+    pass = p; localStorage.setItem('qv_pass', p);
+    return api(url, opt);
+  }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Error ' + r.status);
+  return j;
+}
+
+async function load() {
+  try { items = await api('/api/items'); } catch (e) { toast(e.message); items = []; }
+  render();
+}
+
+function render() {
+  const q = $('#q').value.trim().toLowerCase();
+  const shown = items.filter(i =>
+    (filter === 'all' || i.type === filter) &&
+    (!q || (i.title + i.subject + i.topic).toLowerCase().includes(q)));
+  const tree = {};
+  shown.forEach(i => ((tree[i.subject] ||= {})[i.topic] ||= []).push(i));
+  const subs = Object.keys(tree).sort((a, b) => a.localeCompare(b));
+  if (!subs.length) {
+    $('#list').innerHTML = `<div class="empty">${items.length ? 'Kuch nahi mila 🔍' : '✦<br>Abhi koi file nahi hai.<br>Neeche <b>+</b> dabake apna pehla quiz ya PDF add karo.'}</div>`;
+  } else {
+    $('#list').innerHTML = subs.map(s => {
+      const total = Object.values(tree[s]).reduce((n, a) => n + a.length, 0);
+      const topics = Object.keys(tree[s]).sort((a, b) => a.localeCompare(b)).map(t => `
+        <div class="topic">
+          <div class="thead">${esc(t)}<span class="line"></span>
+            <button class="tbtn" data-act="rentopic" data-s="${esc(s)}" data-t="${esc(t)}">✎</button>
+            <button class="tbtn danger" data-act="deltopic" data-s="${esc(s)}" data-t="${esc(t)}">🗑</button>
+          </div>
+          ${tree[s][t].map(i => `
+            <div class="row">
+              <div class="badge ${i.type}" data-act="open" data-id="${i.id}">${i.type === 'pdf' ? 'PDF' : 'QUIZ'}</div>
+              <div class="info" data-act="open" data-id="${i.id}">
+                <div class="title">${esc(i.title)}</div>
+                <div class="meta">${(i.size / 1024).toFixed(0)} KB · ${new Date(i.created).toLocaleDateString()}</div>
+              </div>
+              <button class="ibtn" data-act="edit" data-id="${i.id}">✎</button>
+              <button class="ibtn danger" data-act="del" data-id="${i.id}">🗑</button>
+            </div>`).join('')}
+        </div>`).join('');
+      return `<details class="sub" data-s="${esc(s)}" ${openSubs.has(s) || q ? 'open' : ''}>
+        <summary><span class="caret">▶</span>${esc(s)}
+          <span class="count">${total}</span>
+          <button class="tbtn" data-act="rensub" data-s="${esc(s)}">✎</button>
+          <button class="tbtn danger" data-act="delsub" data-s="${esc(s)}">🗑</button>
+        </summary>${topics}</details>`;
+    }).join('');
+  }
+  $('#subs').innerHTML = [...new Set(items.map(i => i.subject))].map(s => `<option value="${esc(s)}">`).join('');
+}
+
+$('#list').addEventListener('toggle', e => {
+  const d = e.target; if (!d.dataset || !d.dataset.s) return;
+  d.open ? openSubs.add(d.dataset.s) : openSubs.delete(d.dataset.s);
+  localStorage.setItem('qv_open', JSON.stringify([...openSubs]));
+}, true);
+
+$('#list').addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const { act, id, s, t } = el.dataset;
+  if (el.closest('summary')) e.preventDefault();
+  try {
+    if (act === 'open') return openItem(items.find(i => i.id === id));
+    if (act === 'edit') return openModal(items.find(i => i.id === id));
+    if (act === 'del') {
+      const it = items.find(i => i.id === id);
+      if (confirm(`"${it.title}" delete karna hai?`)) { await api('/api/items?scope=item&id=' + id, { method: 'DELETE' }); toast('Delete ho gaya'); load(); }
+    }
+    if (act === 'rensub') {
+      const to = prompt('Subject ka naya naam:', s);
+      if (to && to !== s) { await api('/api/items', { method: 'PUT', body: { scope: 'subject', from: s, to } }); load(); }
+    }
+    if (act === 'delsub') {
+      if (confirm(`Subject "${s}" aur uski SAARI files delete karni hain?`)) { await api(`/api/items?scope=subject&subject=${encodeURIComponent(s)}`, { method: 'DELETE' }); load(); }
+    }
+    if (act === 'rentopic') {
+      const to = prompt('Topic ka naya naam:', t);
+      if (to && to !== t) { await api('/api/items', { method: 'PUT', body: { scope: 'topic', subject: s, from: t, to } }); load(); }
+    }
+    if (act === 'deltopic') {
+      if (confirm(`Topic "${t}" ki saari files delete karni hain?`)) { await api(`/api/items?scope=topic&subject=${encodeURIComponent(s)}&topic=${encodeURIComponent(t)}`, { method: 'DELETE' }); load(); }
+    }
+  } catch (err) { toast(err.message); }
+});
+
+$('#q').addEventListener('input', render);
+$('#chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  filter = c.dataset.f;
+  document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c));
+  render();
+});
+
+/* ---------- Add / Edit modal ---------- */
+function openModal(it) {
+  editId = it ? it.id : null;
+  $('#mtitle').textContent = it ? 'Edit karo' : 'Nayi file add karo';
+  $('#fsub').value = it ? it.subject : '';
+  $('#ftop').value = it ? it.topic : '';
+  $('#ftitle').value = it ? it.title : '';
+  $('#filebox').style.display = it ? 'none' : 'block';
+  $('#ffile').value = ''; $('#fname').textContent = '📂 File chuno';
+  $('#modal').classList.add('show');
+}
+const closeModal = () => $('#modal').classList.remove('show');
+$('#add').onclick = () => openModal(null);
+$('#cancel').onclick = closeModal;
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+$('#fsub').addEventListener('input', () => {
+  const s = $('#fsub').value.trim();
+  $('#tops').innerHTML = [...new Set(items.filter(i => i.subject === s).map(i => i.topic))].map(t => `<option value="${esc(t)}">`).join('');
+});
+$('#ffile').addEventListener('change', () => {
+  const f = $('#ffile').files[0];
+  $('#fname').textContent = f ? '📄 ' + f.name : '📂 File chuno';
+  if (f && !$('#ftitle').value) $('#ftitle').value = f.name.replace(/\.[^.]+$/, '');
+});
+
+const toBase64 = f => new Promise((ok, no) => {
+  const r = new FileReader();
+  r.onload = () => ok(r.result.split(',')[1]);
+  r.onerror = () => no(new Error('File padh nahi paya'));
+  r.readAsDataURL(f);
+});
+
+$('#save').onclick = async () => {
+  const subject = $('#fsub').value.trim(), topic = $('#ftop').value.trim(), title = $('#ftitle').value.trim();
+  if (!subject || !topic) return toast('Subject aur topic likho');
+  const btn = $('#save'); btn.disabled = true;
+  try {
+    if (editId) {
+      await api('/api/items', { method: 'PUT', body: { scope: 'item', id: editId, subject, topic, title } });
+    } else {
+      const f = $('#ffile').files[0];
+      if (!f) throw new Error('File chuno');
+      if (f.size > 3.2 * 1024 * 1024) throw new Error('File 3 MB se badi hai');
+      const isPdf = /\.pdf$/i.test(f.name) || f.type === 'application/pdf';
+      await api('/api/items', { method: 'POST', body: { subject, topic, title, type: isPdf ? 'pdf' : 'quiz', filename: f.name, data: await toBase64(f) } });
+    }
+    closeModal(); toast('Save ho gaya ✦'); openSubs.add(subject); load();
+  } catch (e) { toast(e.message); }
+  btn.disabled = false;
+};
+
+/* ---------- Viewer ---------- */
+let pdfLib;
+function loadPdfJs() {
+  if (pdfLib) return pdfLib;
+  return pdfLib = new Promise((ok, no) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; ok(); };
+    s.onerror = () => no(new Error('PDF viewer load nahi hua (internet check karo)'));
+    document.head.appendChild(s);
+  });
+}
+
+async function openItem(it) {
+  if (!it) return;
+  const url = `/api/file?id=${it.id}&p=${encodeURIComponent(pass)}`;
+  $('#vtitle').textContent = it.title;
+  const body = $('#vbody'); body.innerHTML = '';
+  $('#viewer').classList.add('show');
+  if (it.type === 'quiz') {
+    const f = document.createElement('iframe');
+    f.setAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-modals allow-same-origin');
+    f.src = url; body.appendChild(f);
+  } else {
+    body.innerHTML = '<div class="empty">PDF khul raha hai…</div>';
+    try {
+      await loadPdfJs();
+      const pdf = await pdfjsLib.getDocument(url).promise;
+      body.innerHTML = '';
+      const dpr = window.devicePixelRatio || 1;
+      for (let n = 1; n <= pdf.numPages; n++) {
+        const pg = await pdf.getPage(n);
+        const w = body.clientWidth - 16, v0 = pg.getViewport({ scale: 1 });
+        const vp = pg.getViewport({ scale: (w / v0.width) * dpr });
+        const c = document.createElement('canvas');
+        c.width = vp.width; c.height = vp.height; c.style.width = vp.width / dpr + 'px';
+        body.appendChild(c);
+        await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      }
+    } catch (e) { body.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  }
+}
+$('#vclose').onclick = () => { $('#viewer').classList.remove('show'); $('#vbody').innerHTML = ''; };
+
+load();
+</script>
+</body>
+</html>
